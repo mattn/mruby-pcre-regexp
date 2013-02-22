@@ -112,10 +112,13 @@ pcre_regexp_match(mrb_state *mrb, mrb_value self) {
   if (regno < 0)
     return mrb_nil_value();
 
+  mrb_iv_set(mrb, self, mrb_intern(mrb, "@last_match"), mrb_nil_value());
+
   int ai = mrb_gc_arena_save(mrb);
   struct RClass* clazz;
   clazz = mrb_class_get(mrb, "PcreMatchData");
   mrb_value c = mrb_class_new_instance(mrb, 0, NULL, clazz);
+  mrb_iv_set(mrb, c, mrb_intern(mrb, "@source"), mrb_str_new_cstr(mrb, str));
   mrb_value args[2];
   for (i = 0; i < regno; i++) {
     args[0] = mrb_fixnum_value(match[i * 2]);
@@ -124,7 +127,6 @@ pcre_regexp_match(mrb_state *mrb, mrb_value self) {
     mrb_gc_arena_restore(mrb, ai);
   }
 
-  mrb_iv_set(mrb, c, mrb_intern(mrb, "@source"), mrb_str_new_cstr(mrb, str));
   mrb_iv_set(mrb, self, mrb_intern(mrb, "@last_match"), c);
   return c;
 }
