@@ -118,7 +118,7 @@ pcre_regexp_match(mrb_state *mrb, mrb_value self) {
   struct RClass* clazz;
   clazz = mrb_class_get(mrb, "PcreMatchData");
   mrb_value c = mrb_class_new_instance(mrb, 0, NULL, clazz);
-  mrb_iv_set(mrb, c, mrb_intern(mrb, "@source"), mrb_str_new_cstr(mrb, str));
+  mrb_iv_set(mrb, c, mrb_intern(mrb, "@string"), mrb_str_new_cstr(mrb, str));
   mrb_value args[2];
   for (i = 0; i < regno; i++) {
     args[0] = mrb_fixnum_value(match[i * 2]);
