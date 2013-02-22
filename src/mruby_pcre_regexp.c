@@ -78,6 +78,23 @@ pcre_regexp_initialize(mrb_state *mrb, mrb_value self) {
 }
 
 static mrb_value
+pcre_regexp_initialize_copy(mrb_state *mrb, mrb_value copy) {
+  mrb_value regexp;
+  struct mrb_pcre_regexp *reg;
+
+  mrb_get_args(mrb, "o", &regexp);
+  if (mrb_obj_equal(mrb, copy, regexp)){
+    return copy;
+  }
+  if (!mrb_obj_is_instance_of(mrb, regexp, mrb_obj_class(mrb, copy))){
+    mrb_raise(mrb, E_TYPE_ERROR, "wrong argument class");
+  }
+
+  Data_Get_Struct(mrb, regexp, &mrb_pcre_regexp_type, reg);
+  pcre_regexp_init(mrb, copy, mrb_funcall_argv(mrb, regexp, mrb_intern(mrb, "source"), 0, NULL), mrb_fixnum_value(reg->flag));
+  return copy;
+}
+static mrb_value
 pcre_regexp_match(mrb_state *mrb, mrb_value self) {
   const char *str;
   mrb_value regexp;
@@ -107,7 +124,7 @@ pcre_regexp_match(mrb_state *mrb, mrb_value self) {
     mrb_gc_arena_restore(mrb, ai);
   }
 
-  mrb_iv_set(mrb, c, mrb_intern(mrb, "@string"), mrb_str_new_cstr(mrb, str));
+  mrb_iv_set(mrb, c, mrb_intern(mrb, "@source"), mrb_str_new_cstr(mrb, str));
   mrb_iv_set(mrb, self, mrb_intern(mrb, "@last_match"), c);
   return c;
 }
@@ -160,6 +177,7 @@ mrb_mruby_pcre_regexp_gem_init(mrb_state* mrb) {
   mrb_define_const(mrb, clazz, "MULTILINE", mrb_fixnum_value(4));
 
   mrb_define_method(mrb, clazz, "initialize", pcre_regexp_initialize, ARGS_REQ(1) | ARGS_OPT(2));
+  mrb_define_method(mrb, clazz, "initialize_copy", pcre_regexp_initialize_copy, ARGS_REQ(1));
   mrb_define_method(mrb, clazz, "==", pcre_regexp_equal, ARGS_REQ(1));
   mrb_define_method(mrb, clazz, "match", pcre_regexp_match, ARGS_REQ(1));
   mrb_define_method(mrb, clazz, "casefold?", pcre_regexp_casefold_p, ARGS_NONE());
