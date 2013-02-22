@@ -55,8 +55,8 @@ assert("PcreRegexp#match (no flags)") do
   patterns = [
     [ PcreRegexp.new(".*"), "abcd\nefg", "abcd" ],
     [ PcreRegexp.new("^a."), "abcd\naefg", "ab" ],
-    [ PcreRegexp.new("^a."), "bacd\naefg", "ae" ],
-    [ PcreRegexp.new(".$"), "bacd\naefg", "d" ]
+    [ PcreRegexp.new("^b."), "bacd\naefg", "ba" ],
+    [ PcreRegexp.new(".$"), "bacd\naefg", "g" ]
   ]
 
   patterns.all?{ |reg, str, result| reg.match(str)[0] == result }

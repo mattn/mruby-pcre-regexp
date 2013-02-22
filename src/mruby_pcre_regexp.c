@@ -42,7 +42,7 @@ pcre_regexp_init(mrb_state *mrb, mrb_value self, mrb_value str, mrb_value flag) 
     pcre_free(reg->re);
   }
 
-  int cflag = 0;
+  int cflag = PCRE_DOTALL;
   if (mrb_nil_p(flag))
     cflag = 0;
   else if (mrb_fixnum_p(flag)) {
@@ -60,7 +60,7 @@ pcre_regexp_init(mrb_state *mrb, mrb_value self, mrb_value str, mrb_value flag) 
   reg->flag = cflag;
   int erroff = 0;
   const char *errstr = NULL;
-  reg->re = pcre_compile(RSTRING_PTR(str), 0, &errstr, &erroff, NULL);
+  reg->re = pcre_compile(RSTRING_PTR(str), cflag, &errstr, &erroff, NULL);
   if (!reg->re) {
     mrb_raisef(mrb, E_ARGUMENT_ERROR, "'%s' is an invalid regular expression because %s.",
       RSTRING_PTR(str) + erroff, errstr);
@@ -108,7 +108,7 @@ pcre_regexp_match(mrb_state *mrb, mrb_value self) {
   int i;
   size_t nmatch = 999;
   int match[nmatch];
-  int regno = pcre_exec(reg->re, NULL, str, strlen(str), 0, reg->flag, match, nmatch);
+  int regno = pcre_exec(reg->re, NULL, str, strlen(str), 0, 0, match, nmatch);
   if (regno < 0)
     return mrb_nil_value();
 
