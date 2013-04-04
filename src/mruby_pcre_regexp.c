@@ -62,8 +62,8 @@ pcre_regexp_init(mrb_state *mrb, mrb_value self, mrb_value str, mrb_value flag) 
   const char *errstr = NULL;
   reg->re = pcre_compile(RSTRING_PTR(str), cflag, &errstr, &erroff, NULL);
   if (!reg->re) {
-    mrb_raisef(mrb, E_ARGUMENT_ERROR, "'%s' is an invalid regular expression because %s.",
-      RSTRING_PTR(str) + erroff, errstr);
+    mrb_raisef(mrb, E_ARGUMENT_ERROR, "'%S' is an invalid regular expression because %S.",
+      mrb_str_new_cstr(mrb, RSTRING_PTR(str) + erroff), mrb_str_new_cstr(mrb, errstr));
   }
   mrb_iv_set(mrb, self, mrb_intern(mrb, "@source"), str);
 }
