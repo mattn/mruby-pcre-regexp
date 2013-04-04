@@ -156,7 +156,7 @@ class String
       return r if m.end(0) == 0
       r << m.pre_match
       (1..m.size-1).each do |x|
-        r << m[x]
+        r << m[x] unless m[x].empty?
       end
       ss = m.post_match
       l -= 1

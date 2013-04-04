@@ -42,7 +42,7 @@ pcre_regexp_init(mrb_state *mrb, mrb_value self, mrb_value str, mrb_value flag) 
     pcre_free(reg->re);
   }
 
-  int cflag = PCRE_DOTALL;
+  int cflag = 0;
   if (mrb_nil_p(flag))
     cflag = 0;
   else if (mrb_fixnum_p(flag)) {
