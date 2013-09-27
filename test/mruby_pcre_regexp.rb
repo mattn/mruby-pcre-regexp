@@ -64,7 +64,8 @@ end
 
 assert("PcreRegexp#match (multiline)") do
   patterns = [
-    [ PcreRegexp.new(".*", PcreRegexp::MULTILINE), "abcd\nefg", "abcd\nefg" ]
+    [ PcreRegexp.new(".c$", PcreRegexp::MULTILINE), "abc\nefc", "bc" ],
+    [ PcreRegexp.new(".c$"), "abc\nefc", "fc" ]
   ]
 
   patterns.all?{ |reg, str, result| reg.match(str)[0] == result }
