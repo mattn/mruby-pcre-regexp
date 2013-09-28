@@ -49,13 +49,13 @@ pcre_regexp_init(mrb_state *mrb, mrb_value self, mrb_value str, mrb_value flag) 
     int nflag = mrb_fixnum(flag);
     if (nflag & 1) cflag |= PCRE_CASELESS;
     if (nflag & 2) cflag |= PCRE_EXTENDED;
-    if (nflag & 4) cflag |= PCRE_MULTILINE;
+    if (nflag & 4) cflag |= PCRE_MULTILINE | PCRE_DOTALL;
   } else if (mrb_type(flag) == MRB_TT_TRUE)
     cflag |= PCRE_CASELESS;
   else if (mrb_string_p(flag)) {
     if (strchr(RSTRING_PTR(flag), 'i')) cflag |= PCRE_CASELESS;
     if (strchr(RSTRING_PTR(flag), 'x')) cflag |= PCRE_EXTENDED;
-    if (strchr(RSTRING_PTR(flag), 'm')) cflag |= PCRE_MULTILINE;
+    if (strchr(RSTRING_PTR(flag), 'm')) cflag |= PCRE_MULTILINE | PCRE_DOTALL;
   }
   reg->flag = cflag;
   int erroff = 0;
