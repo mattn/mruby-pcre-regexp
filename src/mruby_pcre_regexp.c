@@ -7,6 +7,12 @@
 #include <mruby/string.h>
 #include <mruby/data.h>
 #include <mruby/variable.h>
+#if defined(_WIN32) || defined(_WIN64)
+#include <Shlwapi.h>
+  #define STRCHR StrChr
+#else
+  #define STRCHR strchr
+#endif
 #include "pcre.h"
 
 struct mrb_pcre_regexp {
@@ -29,6 +35,9 @@ static void
 pcre_regexp_init(mrb_state *mrb, mrb_value self, mrb_value str, mrb_value flag) {
   mrb_value regexp;
   struct mrb_pcre_regexp *reg;
+  int cflag = 0;
+  int erroff = 0;
+  const char *errstr = NULL;
 
   regexp = mrb_iv_get(mrb, self, mrb_intern_cstr(mrb, "@regexp"));
   if (mrb_nil_p(regexp)) {
@@ -42,7 +51,6 @@ pcre_regexp_init(mrb_state *mrb, mrb_value self, mrb_value str, mrb_value flag) 
     pcre_free(reg->re);
   }
 
-  int cflag = 0;
   if (mrb_nil_p(flag))
     cflag = 0;
   else if (mrb_fixnum_p(flag)) {
@@ -53,13 +61,11 @@ pcre_regexp_init(mrb_state *mrb, mrb_value self, mrb_value str, mrb_value flag) 
   } else if (mrb_type(flag) == MRB_TT_TRUE)
     cflag |= PCRE_CASELESS;
   else if (mrb_string_p(flag)) {
-    if (strchr(RSTRING_PTR(flag), 'i')) cflag |= PCRE_CASELESS;
-    if (strchr(RSTRING_PTR(flag), 'x')) cflag |= PCRE_EXTENDED;
-    if (strchr(RSTRING_PTR(flag), 'm')) cflag |= PCRE_MULTILINE | PCRE_DOTALL;
+    if (STRCHR(RSTRING_PTR(flag), 'i')) cflag |= PCRE_CASELESS;
+    if (STRCHR(RSTRING_PTR(flag), 'x')) cflag |= PCRE_EXTENDED;
+    if (STRCHR(RSTRING_PTR(flag), 'm')) cflag |= PCRE_MULTILINE | PCRE_DOTALL;
   }
   reg->flag = cflag;
-  int erroff = 0;
-  const char *errstr = NULL;
   reg->re = pcre_compile(RSTRING_PTR(str), cflag, &errstr, &erroff, NULL);
   if (!reg->re) {
     mrb_raisef(mrb, E_ARGUMENT_ERROR, "'%S' is an invalid regular expression because %S.",
@@ -99,27 +105,31 @@ pcre_regexp_match(mrb_state *mrb, mrb_value self) {
   const char *str;
   mrb_value regexp;
   struct mrb_pcre_regexp *reg;
-
+  int i;
+  size_t nmatch = 999;
+  int match[999];
+  int regno;
+  int ai;
+  struct RClass* clazz;
+  mrb_value c;
+  mrb_value args[2];
+  
   mrb_get_args(mrb, "z", &str);
 
   regexp = mrb_iv_get(mrb, self, mrb_intern_cstr(mrb, "@regexp"));
   Data_Get_Struct(mrb, regexp, &mrb_pcre_regexp_type, reg);
 
-  int i;
-  size_t nmatch = 999;
-  int match[nmatch];
-  int regno = pcre_exec(reg->re, NULL, str, strlen(str), 0, 0, match, nmatch);
+  regno = pcre_exec(reg->re, NULL, str, strlen(str), 0, 0, match, nmatch);
   if (regno < 0)
     return mrb_nil_value();
 
   mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@last_match"), mrb_nil_value());
 
-  int ai = mrb_gc_arena_save(mrb);
-  struct RClass* clazz;
+  ai = mrb_gc_arena_save(mrb);
   clazz = mrb_class_get(mrb, "PcreMatchData");
-  mrb_value c = mrb_obj_new(mrb, clazz, 0, NULL);
+  c = mrb_obj_new(mrb, clazz, 0, NULL);
   mrb_iv_set(mrb, c,mrb_intern_cstr(mrb, "@string"), mrb_str_new_cstr(mrb, str));
-  mrb_value args[2];
+  
   for (i = 0; i < regno; i++) {
     args[0] = mrb_fixnum_value(match[i * 2]);
     args[1] = mrb_fixnum_value(match[i * 2 + 1] - match[i * 2]);
