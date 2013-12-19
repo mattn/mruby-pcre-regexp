@@ -4,7 +4,7 @@ MRuby::Gem::Specification.new('mruby-pcre-regexp') do |spec|
   
   case RUBY_PLATFORM
   when /mingw|mswin/
-    spec.linker.libraries << ['pcre3', 'Shlwapi']
+    spec.linker.libraries << ['pcre', 'shlwapi']
     spec.cc.include_paths += ["C:/Windows/system"]
     spec.linker.library_paths += ["C:/Windows/system"]
   else
