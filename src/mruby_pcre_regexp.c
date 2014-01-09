@@ -39,11 +39,11 @@ pcre_regexp_init(mrb_state *mrb, mrb_value self, mrb_value str, mrb_value flag) 
   int erroff = 0;
   const char *errstr = NULL;
 
-  regexp = mrb_iv_get(mrb, self, mrb_intern_cstr(mrb, "@regexp"));
+  regexp = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@regexp"));
   if (mrb_nil_p(regexp)) {
     reg = malloc(sizeof(struct mrb_pcre_regexp));
     memset(reg, 0, sizeof(struct mrb_pcre_regexp));
-    mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@regexp"), mrb_obj_value(
+    mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@regexp"), mrb_obj_value(
         Data_Wrap_Struct(mrb, mrb->object_class,
           &mrb_pcre_regexp_type, (void*) reg)));
   }else{
@@ -71,7 +71,7 @@ pcre_regexp_init(mrb_state *mrb, mrb_value self, mrb_value str, mrb_value flag) 
     mrb_raisef(mrb, E_ARGUMENT_ERROR, "'%S' is an invalid regular expression because %S.",
       mrb_str_new_cstr(mrb, RSTRING_PTR(str) + erroff), mrb_str_new_cstr(mrb, errstr));
   }
-  mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@source"), str);
+  mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@source"), str);
 }
 
 static mrb_value
@@ -97,7 +97,7 @@ pcre_regexp_initialize_copy(mrb_state *mrb, mrb_value copy) {
   }
 
   Data_Get_Struct(mrb, regexp, &mrb_pcre_regexp_type, reg);
-  pcre_regexp_init(mrb, copy, mrb_funcall_argv(mrb, regexp, mrb_intern_cstr(mrb, "source"), 0, NULL), mrb_fixnum_value(reg->flag));
+  pcre_regexp_init(mrb, copy, mrb_funcall_argv(mrb, regexp, mrb_intern_lit(mrb, "source"), 0, NULL), mrb_fixnum_value(reg->flag));
   return copy;
 }
 static mrb_value
@@ -116,28 +116,28 @@ pcre_regexp_match(mrb_state *mrb, mrb_value self) {
   
   mrb_get_args(mrb, "z", &str);
 
-  regexp = mrb_iv_get(mrb, self, mrb_intern_cstr(mrb, "@regexp"));
+  regexp = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@regexp"));
   Data_Get_Struct(mrb, regexp, &mrb_pcre_regexp_type, reg);
 
   regno = pcre_exec(reg->re, NULL, str, strlen(str), 0, 0, match, nmatch);
   if (regno < 0)
     return mrb_nil_value();
 
-  mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@last_match"), mrb_nil_value());
+  mrb_obj_iv_set(mrb, (struct RObject *)mrb_class_real(RDATA(self)->c), mrb_intern_lit(mrb, "@last_match"), mrb_nil_value());
 
   ai = mrb_gc_arena_save(mrb);
   clazz = mrb_class_get(mrb, "PcreMatchData");
   c = mrb_obj_new(mrb, clazz, 0, NULL);
-  mrb_iv_set(mrb, c,mrb_intern_cstr(mrb, "@string"), mrb_str_new_cstr(mrb, str));
+  mrb_iv_set(mrb, c,mrb_intern_lit(mrb, "@string"), mrb_str_new_cstr(mrb, str));
   
   for (i = 0; i < regno; i++) {
     args[0] = mrb_fixnum_value(match[i * 2]);
     args[1] = mrb_fixnum_value(match[i * 2 + 1] - match[i * 2]);
-    mrb_funcall_argv(mrb, c, mrb_intern_cstr(mrb, "push"), sizeof(args)/sizeof(args[0]), &args[0]);
+    mrb_funcall_argv(mrb, c, mrb_intern_lit(mrb, "push"), sizeof(args)/sizeof(args[0]), &args[0]);
     mrb_gc_arena_restore(mrb, ai);
   }
 
-  mrb_iv_set(mrb, self, mrb_intern_cstr(mrb, "@last_match"), c);
+  mrb_obj_iv_set(mrb, (struct RObject *)mrb_class_real(RDATA(self)->c), mrb_intern_lit(mrb, "@last_match"), c);
   return c;
 }
 
@@ -153,8 +153,8 @@ pcre_regexp_equal(mrb_state *mrb, mrb_value self) {
   if (mrb_nil_p(other)) {
     return mrb_false_value();
   }
-  regexp_self = mrb_iv_get(mrb, self, mrb_intern_cstr(mrb, "@regexp"));
-  regexp_other = mrb_iv_get(mrb, other, mrb_intern_cstr(mrb, "@regexp"));
+  regexp_self = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@regexp"));
+  regexp_other = mrb_iv_get(mrb, other, mrb_intern_lit(mrb, "@regexp"));
   Data_Get_Struct(mrb, regexp_self, &mrb_pcre_regexp_type, self_reg);
   Data_Get_Struct(mrb, regexp_other, &mrb_pcre_regexp_type, other_reg);
 
@@ -164,7 +164,7 @@ pcre_regexp_equal(mrb_state *mrb, mrb_value self) {
   if (self_reg->flag != other_reg->flag){
       return mrb_false_value();
   }
-  return mrb_str_equal(mrb, mrb_iv_get(mrb, self, mrb_intern_cstr(mrb, "@source")), mrb_iv_get(mrb, other, mrb_intern_cstr(mrb, "@source"))) ?
+  return mrb_str_equal(mrb, mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@source")), mrb_iv_get(mrb, other, mrb_intern_lit(mrb, "@source"))) ?
       mrb_true_value() : mrb_false_value();
 }
 
@@ -173,7 +173,7 @@ pcre_regexp_casefold_p(mrb_state *mrb, mrb_value self) {
   mrb_value regexp;
   struct mrb_pcre_regexp *reg;
 
-  regexp = mrb_iv_get(mrb, self, mrb_intern_cstr(mrb, "@regexp"));
+  regexp = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@regexp"));
   Data_Get_Struct(mrb, regexp, &mrb_pcre_regexp_type, reg);
   return (reg->flag & PCRE_CASELESS) ? mrb_true_value() : mrb_false_value();
 }
