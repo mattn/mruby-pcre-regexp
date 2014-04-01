@@ -103,9 +103,11 @@ pcre_regexp_initialize_copy(mrb_state *mrb, mrb_value copy) {
 static mrb_value
 pcre_regexp_match(mrb_state *mrb, mrb_value self) {
   const char *str;
+  char global_match[3];
   mrb_value regexp;
   struct mrb_pcre_regexp *reg;
   int i;
+  mrb_value mrb_i, mrb_match;
   size_t nmatch = 999;
   int match[999];
   int regno;
@@ -134,6 +136,12 @@ pcre_regexp_match(mrb_state *mrb, mrb_value self) {
     args[0] = mrb_fixnum_value(match[i * 2]);
     args[1] = mrb_fixnum_value(match[i * 2 + 1] - match[i * 2]);
     mrb_funcall_argv(mrb, c, mrb_intern_lit(mrb, "push"), sizeof(args)/sizeof(args[0]), &args[0]);
+    if (i > 0 && i < 10) {
+      sprintf(global_match, "$%i", i);
+      mrb_i = mrb_fixnum_value(i);
+      mrb_match = mrb_funcall_argv(mrb, c, mrb_intern_lit(mrb, "[]"), 1, &mrb_i);
+      mrb_gv_set(mrb, mrb_intern_cstr(mrb, global_match), mrb_match);
+    }
     mrb_gc_arena_restore(mrb, ai);
   }
 
