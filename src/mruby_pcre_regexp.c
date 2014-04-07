@@ -8,7 +8,7 @@
 #include <mruby/data.h>
 #include <mruby/variable.h>
 #if defined(_WIN32) || defined(_WIN64)
-#include <Shlwapi.h>
+#include <shlwapi.h>
   #define STRCHR StrChr
 #else
   #define STRCHR strchr
