@@ -196,11 +196,11 @@ mrb_mruby_pcre_regexp_gem_init(mrb_state* mrb) {
   mrb_define_const(mrb, clazz, "EXTENDED", mrb_fixnum_value(2));
   mrb_define_const(mrb, clazz, "MULTILINE", mrb_fixnum_value(4));
 
-  mrb_define_method(mrb, clazz, "initialize", pcre_regexp_initialize, ARGS_REQ(1) | ARGS_OPT(2));
-  mrb_define_method(mrb, clazz, "initialize_copy", pcre_regexp_initialize_copy, ARGS_REQ(1));
-  mrb_define_method(mrb, clazz, "==", pcre_regexp_equal, ARGS_REQ(1));
-  mrb_define_method(mrb, clazz, "match", pcre_regexp_match, ARGS_REQ(1));
-  mrb_define_method(mrb, clazz, "casefold?", pcre_regexp_casefold_p, ARGS_NONE());
+  mrb_define_method(mrb, clazz, "initialize", pcre_regexp_initialize, MRB_ARGS_REQ(1) | MRB_ARGS_OPT(2));
+  mrb_define_method(mrb, clazz, "initialize_copy", pcre_regexp_initialize_copy, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, clazz, "==", pcre_regexp_equal, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, clazz, "match", pcre_regexp_match, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, clazz, "casefold?", pcre_regexp_casefold_p, MRB_ARGS_NONE());
 }
 
 void
