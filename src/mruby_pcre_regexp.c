@@ -186,6 +186,78 @@ pcre_regexp_casefold_p(mrb_state *mrb, mrb_value self) {
   return (reg->flag & PCRE_CASELESS) ? mrb_true_value() : mrb_false_value();
 }
 
+static mrb_value
+pcre_regexp_quote_class(mrb_state *mrb, mrb_value self) {
+  char *pattern, *pattern_end, *output, *p, *q, c;
+  mrb_int pattern_length;
+  mrb_value return_value;
+ 
+  mrb_get_args(mrb, "s!", &pattern, &pattern_length);
+
+  if (!pattern_length)
+  {
+      return mrb_str_new(mrb, "", 0);
+  }
+
+  pattern_end = pattern + pattern_length;
+
+  /* based on PHP code:
+     https://github.com/php/php-src/blob/49412756df244d94a217853395d15e96cb60e18f/ext/pcre/php_pcre.c
+  */
+
+  /* Allocate enough memory so that even if each character
+     is quoted, we won't run out of room */
+  output = mrb_malloc(mrb, 4 * pattern_length + 1);
+
+  /* Go through the string and quote necessary characters */
+  for (p = pattern, q = output; p != pattern_end; p++) {
+    c = *p;
+    switch(c) {
+      case '.':
+      case '\\':
+      case '+':
+      case '*':
+      case '?':
+      case '[':
+      case '^':
+      case ']':
+      case '$':
+      case '(':
+      case ')':
+      case '{':
+      case '}':
+      case '=':
+      case '!':
+      case '>':
+      case '<':
+      case '|':
+      case ':':
+      case '-':
+        *q++ = '\\';
+        *q++ = c;
+        break;
+
+      case '\0':
+        *q++ = '\\';
+        *q++ = '0';
+        *q++ = '0';
+        *q++ = '0';
+        break;
+
+      default:
+        *q++ = c;
+        break;
+    }
+  }
+  *q = '\0';
+
+  /* Reallocate string and return it */
+  return_value = mrb_str_new(mrb, output, q - output);
+  mrb_free(mrb, output);
+
+  return return_value;
+}
+
 void
 mrb_mruby_pcre_regexp_gem_init(mrb_state* mrb) {
   struct RClass *clazz;
@@ -201,6 +273,8 @@ mrb_mruby_pcre_regexp_gem_init(mrb_state* mrb) {
   mrb_define_method(mrb, clazz, "==", pcre_regexp_equal, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, clazz, "match", pcre_regexp_match, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, clazz, "casefold?", pcre_regexp_casefold_p, MRB_ARGS_NONE());
+
+  mrb_define_class_method(mrb, clazz, "quote", pcre_regexp_quote_class, MRB_ARGS_REQ(1));
 }
 
 void

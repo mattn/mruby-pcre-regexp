@@ -24,6 +24,26 @@ assert("PcreRegexp#===") do
   (reg === "http://example.com") == true and (reg === "htt://example.com") == false
 end
 
+assert('quote nil') do
+  PcreRegexp.quote(nil) == ''
+end
+
+assert('quote empty') do
+  PcreRegexp.quote('') == ''
+end
+
+assert('quote simple') do
+  PcreRegexp.quote('test') == 'test'
+end
+
+assert('quote dot') do
+  PcreRegexp.quote('.') == '\\.'
+end
+
+assert('quote complex') do
+  PcreRegexp.quote('(\d+)') == '\\(\\\\d\\+\\)'
+end
+
 # TODO =~
 
 assert("PcreRegexp#casefold?") do
