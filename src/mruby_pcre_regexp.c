@@ -41,7 +41,7 @@ pcre_regexp_init(mrb_state *mrb, mrb_value self, mrb_value str, mrb_value flag) 
 
   regexp = mrb_iv_get(mrb, self, mrb_intern_lit(mrb, "@regexp"));
   if (mrb_nil_p(regexp)) {
-    reg = malloc(sizeof(struct mrb_pcre_regexp));
+    reg = (struct mrb_pcre_regexp *)malloc(sizeof(struct mrb_pcre_regexp));
     memset(reg, 0, sizeof(struct mrb_pcre_regexp));
     mrb_iv_set(mrb, self, mrb_intern_lit(mrb, "@regexp"), mrb_obj_value(
         Data_Wrap_Struct(mrb, mrb->object_class,
@@ -207,7 +207,7 @@ pcre_regexp_quote_class(mrb_state *mrb, mrb_value self) {
 
   /* Allocate enough memory so that even if each character
      is quoted, we won't run out of room */
-  output = mrb_malloc(mrb, 4 * pattern_length + 1);
+  output = (char *)mrb_malloc(mrb, 4 * pattern_length + 1);
 
   /* Go through the string and quote necessary characters */
   for (p = pattern, q = output; p != pattern_end; p++) {
