@@ -103,7 +103,7 @@ pcre_regexp_initialize_copy(mrb_state *mrb, mrb_value copy) {
 static mrb_value
 pcre_regexp_match(mrb_state *mrb, mrb_value self) {
   const char *str;
-  char global_match[3];
+  char global_match[5];
   mrb_value regexp;
   struct mrb_pcre_regexp *reg;
   int i;
